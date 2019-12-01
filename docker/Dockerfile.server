@@ -1,0 +1,21 @@
+FROM alpine-java:base
+
+MAINTAINER ayesh almeida
+
+RUN mkdir -p /opt/lib
+
+COPY ./target/docker-sample-app-bin.zip /opt/lib
+
+WORKDIR /opt/lib
+
+RUN unzip docker-sample-app-bin.zip
+
+RUN rm docker-sample-app-bin.zip
+
+ENTRYPOINT ["/opt/lib/docker-sample-app/bin/docker-sample-app"]
+
+CMD ["start"]
+
+VOLUME /home/server-manager/docker-sample-app/conf
+
+EXPOSE 10001
