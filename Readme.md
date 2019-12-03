@@ -23,6 +23,16 @@ to understand the basic docerization of a web-application.
     docker build --file=./docker/Dockerfile.server --tag=web-server:latest --rm=true .
 ```
 
+** Note : If you are trying to include it to docker-hub use following **
+
+```bash
+    docker build --file=./docker/Dockerfile.server -t <docker-hub-user-name>/web-server:latest --rm=true .
+```
+
+```bash
+    docker push <docker-hub-user-name>/web-server:latest
+```
+
 * To start the container run-following command from command-line.
 
 ```bash
