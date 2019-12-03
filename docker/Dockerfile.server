@@ -4,7 +4,7 @@ MAINTAINER ayesh almeida
 
 COPY ./target/docker-sample-app /opt/app
 
-RUN chmod 777 /opt/app/bin/*
+RUN chmod 500 /opt/app/bin/*
 
 WORKDIR /opt/app/bin/
 
