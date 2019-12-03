@@ -17,9 +17,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <jsw.assemble.dir>target/generated-resources/appassembler/jsw</jsw.assemble.dir>
-        <wrapper.location>${project.build.directory}/generated-resources/appassembler/jsw/docker-sample-app</wrapper.location>
         <resource.file.location>.</resource.file.location>
+        <resource.concat.dir>target/generated-resources/appassembler/resources</resource.concat.dir>
+        <jsw.assemble.dir>target/generated-resources/appassembler/jsw</jsw.assemble.dir>
+        <appassembler.basedir>target/generated-resources/appassembler/jsw/docker-sample-app</appassembler.basedir>
         <java.version>1.8</java.version>
     </properties>
 
@@ -67,54 +68,14 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.2</version>
-                <configuration>
-                    <goals>deploy</goals>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <tagNameFormat>@{project.version}</tagNameFormat>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/conf</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/src/main/resources</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
                 <configuration>
                     <excludes>
-                        <exclude>**/*.yml</exclude>
-                        <exclude>**/*.txt</exclude>
+                        <exclude>*.conf</exclude>
+                        <exclude>*.properties</exclude>
+                        <exclude>*.xml</exclude>
+                        <exclude>*.yml</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -122,132 +83,77 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
-                <version>1.10</version>
+                <version>1.0</version>
+                <configuration>
+                    <repoPath>lib</repoPath>
+                    <repositoryLayout>flat</repositoryLayout>
+                    <assembleDirectory>${jsw.assemble.dir}</assembleDirectory>
+                    <daemons>
+                        <daemon>
+                            <id>docker-sample-app</id>
+                            <mainClass>com.sample.dockerizedwebapp.DockerizedWebAppApplication</mainClass>
+                            <platforms>
+                                <platform>jsw</platform>
+                            </platforms>
+
+                            <jvmSettings>
+                                <extraArguments>
+                                    <extraArgument>-Xms256m</extraArgument>
+                                    <extraArgument>-Xmx256m</extraArgument>
+                                </extraArguments>
+                            </jvmSettings>
+
+
+                            <generatorConfigurations>
+                                <generatorConfiguration>
+                                    <generator>jsw</generator>
+                                    <configuration>
+                                        <property>
+                                            <name>wrapper.java.mainclass</name>
+                                            <value>org.tanukisoftware.wrapper.WrapperSimpleApp</value>
+                                        </property>
+
+                                        <property>
+                                            <name>wrapper.app.parameter.1</name>
+                                            <value>com.sample.dockerizedwebapp.DockerizedWebAppApplication</value>
+                                        </property>
+
+                                        <property>
+                                            <name>configuration.directory.in.classpath.first</name>
+                                            <value>conf</value>
+                                        </property>
+                                        <property>
+                                            <name>set.default.REPO_DIR</name>
+                                            <value>lib</value>
+                                        </property>
+                                        <property>
+                                            <name>wrapper.logfile</name>
+                                            <value>logs/wrapper.log</value>
+                                        </property>
+                                        <property>
+                                            <name>wrapper.startup.timeout</name>
+                                            <value>0</value>
+                                        </property>
+                                        <property>
+                                            <name>wrapper.ping.timeout</name>
+                                            <value>60</value>
+                                        </property>
+                                    </configuration>
+                                    <includes>
+                                        <include>linux-x86-64</include>
+                                    </includes>
+                                </generatorConfiguration>
+                            </generatorConfigurations>
+                        </daemon>
+                    </daemons>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>generate-jsw-scripts</id>
                         <phase>package</phase>
                         <goals>
                             <goal>generate-daemons</goal>
+                            <goal>create-repository</goal>
                         </goals>
-                        <configuration>
-                            <repositoryLayout>flat</repositoryLayout>
-                            <configurationDirectory>conf</configurationDirectory>
-                            <daemons>
-                                <daemon>
-                                    <id>docker-sample-app</id>
-                                    <wrapperMainClass>org.tanukisoftware.wrapper.WrapperSimpleApp</wrapperMainClass>
-                                    <mainClass>com.sample.dockerizedwebapp.DockerizedWebAppApplication</mainClass>
-                                    <commandLineArguments>
-                                        <commandLineArgument>start</commandLineArgument>
-                                    </commandLineArguments>
-                                    <platforms>
-                                        <platform>jsw</platform>
-                                    </platforms>
-                                    <generatorConfigurations>
-                                        <generatorConfiguration>
-                                            <generator>jsw</generator>
-                                            <configuration>
-                                                <property>
-                                                    <name>wrapper.java.mainclass</name>
-                                                    <value>org.tanukisoftware.wrapper.WrapperSimpleApp</value>
-                                                </property>
-
-                                                <property>
-                                                    <name>wrapper.app.parameter.1</name>
-                                                    <value>com.sample.dockerizedwebapp.DockerizedWebAppApplication</value>
-                                                </property>
-
-                                                <property>
-                                                    <name>wrapper.java.additional.1</name>
-                                                    <value>-XX:MaxDirectMemorySize=256m</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.2</name>
-                                                    <value>-Xms128m</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.3</name>
-                                                    <value>-Xmx512m</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.4</name>
-                                                    <value>-Dreactor.ipc.netty.selectCount=50</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.5</name>
-                                                    <value>-Dreactor.ipc.netty.workerCount=100</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.6</name>
-                                                    <value>-Xloggc:logs/gclog     </value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.7</name>
-                                                    <value>-XX:+PrintGC</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.8</name>
-                                                    <value>-XX:+PrintGCTimeStamps</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.9</name>
-                                                    <value>-XX:+UseCompressedClassPointers</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.10</name>
-                                                    <value>-XX:+UseCompressedOops</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.11</name>
-                                                    <value>-XX:+UseG1GC</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.12</name>
-                                                    <value>-XX:+UseStringDeduplication</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.13</name>
-                                                    <value>-XX:+PrintStringDeduplicationStatistics</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.java.additional.14</name>
-                                                    <value>-Dio.netty.allocator.useCacheForAllThreads=false</value>
-                                                </property>
-                                                <!--<property>-->
-                                                <!--<name>wrapper.java.additional.15</name>-->
-                                                <!--<value>-Dio.netty.leakDetectionLevel=advanced</value>-->
-                                                <!--</property>-->
-                                                <!--<property>-->
-                                                <!--<name>wrapper.java.additional.16</name>-->
-                                                <!--<value>-verbose:gc</value>-->
-                                                <!--</property>-->
-                                                <!--<property>-->
-                                                <!--<name>wrapper.java.additional.17</name>-->
-                                                <!--<value>-agentpath:/home/sandarenu/software/jprofiler10/bin/linux-x64/libjprofilerti.so=port=8849,nowait,id=103,config=/home/sandarenu/.jprofiler10/config.xml</value>-->
-                                                <!--</property>-->
-                                                <property>
-                                                    <name>configuration.directory.in.classpath.first</name>
-                                                    <value>conf</value>
-                                                </property>
-                                                <property>
-                                                    <name>set.default.REPO_DIR</name>
-                                                    <value>lib</value>
-                                                </property>
-                                                <property>
-                                                    <name>wrapper.logfile</name>
-                                                    <value>logs/wrapper.log</value>
-                                                </property>
-                                            </configuration>
-                                            <includes>
-                                                <include>linux-x86-32</include>
-                                                <include>linux-x86-64</include>
-                                            </includes>
-                                        </generatorConfiguration>
-                                    </generatorConfigurations>
-                                </daemon>
-                            </daemons>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -262,11 +168,28 @@
                         <phase>package</phase>
                         <configuration>
                             <tasks>
-                                <mkdir dir="${wrapper.location}/logs" />
-                                <copy todir="${wrapper.location}/conf">
-                                    <fileset dir="target/conf" />
+                                <mkdir dir="${appassembler.basedir}/logs" />
+                                <mkdir dir="target/docker-sample-app/logs" />
+
+                                <copy todir="target/docker-sample-app/bin" overwrite="true">
+                                    <fileset dir="${jsw.assemble.dir}/docker-sample-app/bin" />
                                 </copy>
-                                <chmod dir="${wrapper.location}/bin" includes="**/*" perm="0755" />
+                                <copy todir="target/docker-sample-app/lib" overwrite="true">
+                                    <fileset dir="${jsw.assemble.dir}/lib" />
+                                </copy>
+                                <copy todir="target/docker-sample-app/lib" overwrite="true">
+                                    <fileset dir="${jsw.assemble.dir}/docker-sample-app/lib" />
+                                </copy>
+                                <copy todir="target/docker-sample-app/conf" overwrite="true">
+                                    <fileset dir="${jsw.assemble.dir}/docker-sample-app/conf" />
+                                </copy>
+                                <copy todir="target/docker-sample-app/conf" overwrite="true">
+                                    <fileset dir="src/main/resources" />
+                                </copy>
+                                <copy todir="${appassembler.basedir}/conf">
+                                    <fileset dir="target/docker-sample-app/conf" />
+                                </copy>
+                                <chmod dir="target/docker-sample-app/bin" perm="777" includes="**/**" />
                             </tasks>
                         </configuration>
                         <goals>
@@ -275,17 +198,20 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.5.3</version>
+                <version>2.1</version>
                 <configuration>
-                    <descriptor>src/main/assembly/dep.xml</descriptor>
-                    <finalName>docker-sample-app</finalName>
+                    <finalName>${project.artifactId}</finalName>
+                    <descriptors>
+                        <descriptor>src/main/assembly/dep.xml</descriptor>
+                    </descriptors>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>create-archive</id>
-                        <phase>package</phase>
+                        <phase>install</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>

@@ -1,21 +1,15 @@
-FROM alpine-java:base
+FROM adoptopenjdk/openjdk8:alpine-slim
 
 MAINTAINER ayesh almeida
 
-RUN mkdir -p /opt/lib
+COPY ./target/docker-sample-app /opt/app
 
-COPY ./target/docker-sample-app-bin.zip /opt/lib
+RUN chmod 777 /opt/app/bin/*
 
-WORKDIR /opt/lib
+WORKDIR /opt/app/bin/
 
-RUN unzip docker-sample-app-bin.zip
+RUN ls -l ./
 
-RUN rm docker-sample-app-bin.zip
-
-ENTRYPOINT ["/opt/lib/docker-sample-app/bin/docker-sample-app"]
-
-CMD ["start"]
-
-VOLUME /home/server-manager/docker-sample-app/conf
+CMD ["sh", "docker-sample-app", "console"]
 
 EXPOSE 10001
