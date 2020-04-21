@@ -1,0 +1,14 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/release/1-0/C4_Container.puml
+
+title Sample System Context Diagram
+
+Person(user, "System User", "Person who uses the system.")
+Person(admin, "Admin User", "Person who manages the system.")
+
+System(sample_system, "Sample System", "Allows users to manage bank account details.")
+
+Rel(user, sample_system, "Uses", "HTTPS")
+Rel(admin, sample_system, "Uses", "HTTPS")
+
+@enduml
